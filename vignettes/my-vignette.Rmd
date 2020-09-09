@@ -27,7 +27,7 @@ At any rate, I hope you enjoy this production! It is certainly a delight to make
 
 ```{r setup}
 #Install my package from github, and load it into the environment
-devtools::install_github("millermc38/datascience",upgrade = "never")
+devtools::install_github("millermc38/datascience",upgrade = "never",force = T)
 library(datascience)
 
 #Import a few other packages just so we can compare output

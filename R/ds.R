@@ -1,4 +1,4 @@
-#' @export
+#' @export datascience
 datascience<-function(data, response, covariates,rounding,family,parameter){
   ########################################################### SETUP
 
