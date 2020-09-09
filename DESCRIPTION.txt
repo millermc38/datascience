@@ -1,2 +1,0 @@
-Package: datascience
-Version: 0.0
