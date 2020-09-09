@@ -14,9 +14,23 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+Welcome to the Data Science package! The goal of this package is to wrap as many different statistical and machine learning methods together as possible without relying on ANY external resources. All of these modeling procedures are built on the fundamental operators in statistics: matrix multiplication, division, addition, integration, etc. This package only requires other packages (outside of Tidyverse, more on that soon) for the purpose of model comparison. That is, those packages are only referenced in this vignette for the purpose of comparison. In this sense, this package is purely borne out of a desire to merge theory and coding, thereby keeping my statistical chops in good shape.
+
+But its is a bit more than this. Often times, I've wondered thinks like: "What would it be like to do a random forest that split using some other method than binary recursive splitting?" or "what if we used a kernel in KNN?" By building my own package, I have the latitude to tamper with model procedures.
+
+Additionally, I've always felt diagnostics and assumption checking tend recede into the background in the eagerness for analysis. In the long term, I would love to include list objects that include a variety of diagnostic tools for any model output.
+
+This project is in its nascency. The model outputs are not well formatted, the code is not vectorized, and the package requires Tidyverse. This last item is a bit of a no-no is the package building world, and pipes tend to be slow in evaluating. I've yet to decide if I prefer readability (since this is a package primarily targeted at deliberate practice) or optimization. I suspect the allure of the latter will eventually win out. 
+
+At any rate, I hope you enjoy this production! It is certainly a delight to make.
+
 ```{r setup}
-devtools::install_github("millermc38/datascience",force = T,upgrade = "never")
+#Install my package from github, and load it into the environment
+devtools::install_github("millermc38/datascience",upgrade = "never")
 library(datascience)
+
+#Import a few other packages just so we can compare output
 library(caret)
 library(asbio)
 ```
