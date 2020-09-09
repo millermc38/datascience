@@ -1,3 +1,4 @@
-foofun<-function(x){
-  1+1
+#' @export
+korea_is<-function(x){
+  "the best country in the world!!!"
 }
