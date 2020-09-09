@@ -1,2 +1,2 @@
-#How to get build tab: View>Show build
-#How to export name space: Build tab>More>Document
+library(usethis)
+use_package("tidyverse",type="depends")
