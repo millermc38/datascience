@@ -18,3 +18,7 @@ Depends:
     tidyverse,
     asbio,
     caret
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
