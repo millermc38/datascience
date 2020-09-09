@@ -1,3 +1,2 @@
 library(devtools)
-test=1
-test2=2
+use_r("foofun")
