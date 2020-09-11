@@ -38,6 +38,8 @@ library(datascience)
 #Import a few other packages just so we can compare output
 library(caret)
 library(asbio)
+library(RCurl)
+LOESS_data<- read.csv(text = getURL("https://raw.githubusercontent.com/millermc38/datascience/master/Data/LOESS.csv"))
 data(crabs) #From asbio package
 ```
 
@@ -93,6 +95,18 @@ glm(formula = satell~weight+width,
     family = "poisson",
     data = crabs)%>%summary
 
+```
+
+### LOESS Smoother
+
+Right now, I don't have a comparison plot for this custom LOESS smoother, but hopefully I will add that soon! This is a local constant regression. Local linear is in the works.
+
+```{r}
+datascience(data = LOESS_data,
+            response = c("y"),
+            covariates = c("x"),
+            parameter = 1.5,
+            family = "LOESS")
 ```
 
 ### KNN

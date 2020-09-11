@@ -74,6 +74,50 @@ datascience<-function(data, response, covariates,rounding,family,parameter){
     Y<-data%>%select(response)%>%as.matrix
   }
 
+  ########################################################### LOESS (under development)
+
+  if(family=="LOESS"){
+    #Set up a place to store information for fitting the curve.
+
+    Data<-cbind(Y,X)%>%data.frame
+    local_constant_bandwith <- parameter
+    curve_data<-seq(from=min(Data$x),
+                    to=max(Data$x), by=.01)%>%
+      data.frame()%>%
+      setNames(c("Support"))%>%
+      mutate(Lower=Support-(local_constant_bandwith),
+             Upper=Support+(local_constant_bandwith))
+
+
+    #Calcuting Density
+    for(i in 1:nrow(curve_data)){
+      points_in_window<-Data%>%filter(between(x,left = curve_data$Lower[i],
+                                              right = curve_data$Upper[i]))
+
+      gx_numerator_value=0
+      gx_denominator_value=0
+      for(j in 1:nrow(points_in_window)){
+        u<-abs(points_in_window$x[j]-curve_data$Support[i])/local_constant_bandwith
+        Epanechnikov_Kernel_j<-.75*(1-u^2)
+        num_j <- Epanechnikov_Kernel_j*points_in_window$y[j]
+        denom_j <- Epanechnikov_Kernel_j
+
+        gx_denominator_value<-sum(gx_denominator_value,denom_j)
+        gx_numerator_value<-sum(gx_numerator_value,num_j)
+      }
+      curve_data$gx_local_constant[i]<-gx_numerator_value/gx_denominator_value
+
+    }
+
+    return(ggplot()+
+             geom_point(data = Data, aes(x=x,y=y))+
+             geom_line(data = curve_data, aes(x=Support,y=gx_local_constant),color="red")+
+             theme_light())
+
+    report_key<-"LOESS"
+
+  }
+
   ########################################################### RANDOM FOREST MODULE (under development)
 
   if(family=="rf"){
