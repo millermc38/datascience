@@ -1,5 +1,7 @@
 ---
-title: "Data Science Package: Getting Started"
+title: "Data Science Package: An Introduction"
+author: "Mark Miller"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{my-vignette}
@@ -14,23 +16,108 @@ knitr::opts_chunk$set(
 )
 ```
 
+### Preface
 
-Welcome to the Data Science package! The goal of this package is to wrap as many different statistical and machine learning methods together as possible without relying on ANY external resources. All of these modeling procedures are built on the fundamental operators in statistics: matrix multiplication, division, addition, integration, etc. This package only requires other packages (outside of Tidyverse, more on that soon) for the purpose of model comparison. That is, those packages are only referenced in this vignette for the purpose of comparison. In this sense, this package is purely borne out of a desire to merge theory and coding, thereby keeping my statistical chops in good shape.
+Please note that this package is still in its development stage; it will likely break on datasets outside of this cozy vignette.
 
-But its is a bit more than this. Often times, I've wondered thinks like: "What would it be like to do a random forest that split using some other method than binary recursive splitting?" or "what if we used a kernel in KNN?" By building my own package, I have the latitude to tamper with model procedures.
+### Introduction
 
-Additionally, I've always felt diagnostics and assumption checking tend recede into the background in the eagerness for analysis. In the long term, I would love to include list objects that include a variety of diagnostic tools for any model output.
+Welcome to the Data Science package! The goal of this project is to wrap as many different statistical and machine learning methods together as possible without relying on ANY external resources for calculation. In other words, all of the modeling procedures in this package are built on the fundamental operators in statistics: matrix multiplication, division, addition, integration, etc. This package only requires other packages (outside of Tidyverse, more on that soon) for the purpose of model comparison. In this sense, the motivation for this work is purely borne out of a desire to merge theory and coding, thereby keeping my statistical chops in good shape.
 
-This project is in its nascency. The model outputs are not well formatted, the code is not vectorized, and the package requires Tidyverse. This last item is a bit of a no-no is the package building world, and pipes tend to be slow in evaluating. I've yet to decide if I prefer readability (since this is a package primarily targeted at deliberate practice) or optimization. I suspect the allure of the latter will eventually win out. 
+But it is a bit more than this. Often times, these sorts of thoughts have crossed my mind: "What would it be like to do a random forest that split using some other method than binary recursive splitting?" or "what if we used a kernel in KNN?" By building my own package, I have the latitude to tamper with model procedures. And make model output the way I want it.
 
-At any rate, I hope you enjoy this production! It is certainly a delight to make.
+Additionally, I've always felt diagnostics and assumption checking tend recede into the background in the eagerness for analysis. In the long term, I would love to include list objects that house a variety of diagnostic results for any model output.
+
+This project is in its nascency. The model outputs are not well formatted, the code is not vectorized, factors have shaky handling, and the package requires Tidyverse. This last item is a bit of a no-no is the package building world, and pipes tend to be slow in evaluating. I've yet to decide if I prefer readability (since this is a package primarily targeted at deliberate practice) or optimization. I suspect the allure of the latter will eventually win out. At any rate, I hope you enjoy this production! It is certainly a delight to make.
 
 ```{r setup}
-#Install my package from github, and load it into the environment
-devtools::install_github("millermc38/datascience",upgrade = "never",force = T)
+#Install the package from github, and load it into the environment
+devtools::install_github("millermc38/datascience",upgrade = "never",force = T,quiet = T)
 library(datascience)
 
 #Import a few other packages just so we can compare output
 library(caret)
 library(asbio)
+data(crabs) #From asbio package
 ```
+
+Now, let's take a look at some different analysis methods:
+
+### Linear Regression (OLS)
+
+For OLS, there are small differences in the standard errors between these two packages, but not the $\beta$ estimates. Granted they are minute differences, but it is is still interesting to note.
+
+```{r}
+#datascience package output
+datascience(data = iris,
+    family = "gaussian",
+    response = c("Petal.Width"),
+    covariates = c("Sepal.Length","Species"))
+
+#stats package output
+lm(formula = Petal.Width~Sepal.Length+Species,
+   data = iris)%>%summary
+```
+
+### Logistic Regression
+
+This one is a perfect match in terms of results!
+
+```{r}
+#datascience package output
+datascience(data = mtcars,
+            family = "binomial",
+            response = c("vs"),
+            covariates = c("disp","mpg"))
+
+#stats package output
+glm(formula = vs~disp+mpg,
+    family = "binomial",
+    data = mtcars)%>%summary
+```
+
+
+### Poisson Regression
+
+In the models that follow, my function output matches glm's (you can see the differences are due to rounding). However, my implementation of the Newton-Raphson algorithm to find the maximum likelihood estimates seems to take more steps (9 vs. 6). I'm still exploring why this might be, but clearly it does not impact the results.
+
+```{r}
+#datascience package output
+datascience(data = crabs,
+            family = "poisson",
+            response = c("satell"),
+            covariates = c("weight","width"))
+
+#stats package output
+glm(formula = satell~weight+width,
+    family = "poisson",
+    data = crabs)%>%summary
+
+```
+
+### KNN
+
+For KNN, the results are identical until the 100,000ths place. Good enough for me!
+
+```{r}
+#datascience package output
+mine<-datascience(data = mtcars,
+    family = "knn",
+    response = c("drat"),
+    covariates = c("disp","mpg"),
+    parameter = 3)
+
+
+#caret package output
+theirs<-train(drat~disp+mpg,data = mtcars,method = "knn",
+              trControl=trainControl(method = "none"),
+              tuneGrid=data.frame(k=3))
+
+#Compare test MSE from these models
+data.frame(datascience_testMSE=mine$test_MSE,
+           caret_testMSE=sqrt(mean((mtcars$drat-predict(object = theirs,newdata = mtcars))^2)))
+```
+
+### Trees (Boosting, Bagging, Random Forest)
+
+This is currently under development. Come back soon!
