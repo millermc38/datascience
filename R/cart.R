@@ -1,7 +1,7 @@
 #' @export cart
 
 cart<-function(data, response, covariates,family,min_pre_partition_size,min_terminal_node_size,print_progress=F){
-if(family=="tree"){
+if(family=="tree"){ #test
 
   #Keep track of best splits
   best_split_tracker<-data.frame()
