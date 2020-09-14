@@ -1,5 +1,5 @@
 #' @export datascience
-datascience<-function(data, response, covariates,rounding,family,parameter){
+datascience<-function(data, response, covariates,rounding,family,parameter,intercept=T){
 
   ########################################################### DATA PREPARATION
   #In this section, we write a function that can detect character and factor variables, and turn them into dummy variables
@@ -56,21 +56,35 @@ datascience<-function(data, response, covariates,rounding,family,parameter){
     sorted_factor_details<-lapply(X = dummyize(data)$factor_details,FUN = function(x){sort(x = x,decreasing = F)})
 
     #Make a list of the levels that will be collapsed into the intercept
+    if(intercept==T){
     reference_vars<-sapply(X = sorted_factor_details,FUN = function(x){x[1]})
+    }
 
     #We want to keep the newly created dummy variables, as well as the non-factor covariates selected by the user. There looks like a lot of objects here, but having these will make it easy to transform the data.
+    if(intercept==T){
     vars_to_keep<-sapply(X = sorted_factor_details,FUN = function(x){x[-1]})%>%unlist%>%as.vector
+    }else{
+      vars_to_keep<-sapply(X = sorted_factor_details,FUN = function(x){x})%>%unlist%>%as.vector
+    }
     non_factor_covs<-dummyize(data)$non_factor_covariates
     user_selected_non_factor_covs<-covariates[covariates %in% non_factor_covs]
     final_vars<-c(user_selected_non_factor_covs,vars_to_keep)
 
     #Finally, we use the previous blocks classification of what is what to produce the design matrix and response for analysis.
+    if(intercept==T){
     X<-dum_data%>%select(c(user_selected_non_factor_covs,vars_to_keep))%>%as.matrix%>%cbind(1,.) #Add intercept
+    }else{
+      X<-dum_data%>%select(c(user_selected_non_factor_covs,vars_to_keep))%>%as.matrix
+    }
     Y<-dum_data%>%select(response)%>%as.matrix
 
   }else{#If we didn't have to create dummy variables
     final_vars<-covariates
+    if(intercept==T){
     X<-data%>%select(covariates)%>%as.matrix%>%cbind(1,.) #Add intercept
+    }else{
+      X<-data%>%select(covariates)%>%as.matrix
+    }
     Y<-data%>%select(response)%>%as.matrix
   }
 
@@ -323,8 +337,11 @@ datascience<-function(data, response, covariates,rounding,family,parameter){
       if(is_invertible!="matrix"){print("Hessian is either computationally or exactly singular (not invertible)")}
     }else{#Else, print out the results...
 
+      if(intercept==T){
+        names=c("Intercept",final_vars)
+      }else{names=c(final_vars)}
       #Main regression output:
-      data.frame(parameter=c("Intercept",final_vars),
+      data.frame(parameter=names,
                  beta_hats%>%as.numeric%>%round(5),
                  beta_ses%>%as.numeric%>%round(5),
                  beta_ts%>%as.numeric%>%round(5),
@@ -336,9 +353,10 @@ datascience<-function(data, response, covariates,rounding,family,parameter){
         print(paste("Newton-Raphson iterations: ",iteration_counter-1,"(",max_iterations," allowed)" ))}
 
       #If we had dummy variables, show the reference levels
-      if(class(dummyize(data))=="list"){
+      if(class(dummyize(data))=="list"&intercept==T){
         print("Reference Levels:")
-        print(reference_vars)}
+          print(reference_vars)
+        }
 
     }
   }#End of regression reporting module

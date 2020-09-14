@@ -39,6 +39,7 @@ library(datascience)
 library(caret)
 library(asbio)
 library(RCurl)
+library(tree) #To compare decision trees with my package
 LOESS_data<- read.csv(text = getURL("https://raw.githubusercontent.com/millermc38/datascience/master/Data/LOESS.csv"))
 data(crabs) #From asbio package
 ```
@@ -60,6 +61,15 @@ datascience(data = iris,
 lm(formula = Petal.Width~Sepal.Length+Species,
    data = iris)%>%summary
 ```
+
+### ANOVA (under development)
+
+If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein the intercept is dropped and all variables are considered as factors. We can actually use the same call as in the OLS section, but use the intercept argument. Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different?
+
+```{r}
+
+```
+
 
 ### Logistic Regression
 
@@ -111,7 +121,7 @@ datascience(data = LOESS_data,
 
 ### KNN
 
-For KNN, the results are identical until the 100,000ths place. Good enough for me!
+For KNN, the results are identical until the 100,000ths place. Good enough for me! Note that the parameter argument here is the number of neighbors.
 
 ```{r}
 #datascience package output
@@ -132,6 +142,29 @@ data.frame(datascience_testMSE=mine$test_MSE,
            caret_testMSE=sqrt(mean((mtcars$drat-predict(object = theirs,newdata = mtcars))^2)))
 ```
 
-### Trees (Boosting, Bagging, Random Forest)
+### CART (under development)
 
-This is currently under development. Come back soon!
+This is currently under development. Right now, the package can create a tree, but it seems to be splitting differently across the feature space than other common packages. 
+
+Trees are known for being easier to understand than regression, which is steeped in theory. This is true, but regression is fantastically efficient. If you dig into the code for my package, you'll see that OLS can be accomplished in just a handful of steps. Regression trees, on the other hand, are difficult to vectorize since they are sequential. Furthermore, their high performance comes from a highly intensive search for optimal splits across the feature space. Trees test out each branch, covariance, and some subset of the range of each covariate. It's no wonder that individual trees overfit with ease. Such a search naturally translates to quite a bit of looping.
+
+```{r}
+#We'll start by making a decision tree
+mine<-cart(data = mtcars,
+    family = "tree",
+    response = c("hp"),
+    covariates = c("disp","mpg"),min_pre_partition_size = 10,min_terminal_node_size = 5,
+    print_progress = F)
+
+#Let's usee the "tree" package to compare
+theirs<-tree(hp~ mpg + disp, 
+             data = mtcars,control = tree.control(nrow(mtcars), mincut = 5, minsize = 10))
+
+
+
+#It looks like the function I've supplied does not completely imitate the one from the three package just yet
+cbind(mine[[1]]$hp,mine[[1]]$mean,predict(theirs))%>%data.frame%>%
+  set_names(c("Actual Data","My Tree's Fit","Their Tree's Fit"))
+
+```
+
