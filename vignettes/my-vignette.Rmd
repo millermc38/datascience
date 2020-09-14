@@ -67,7 +67,13 @@ lm(formula = Petal.Width~Sepal.Length+Species,
 If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein the intercept is dropped and all variables are considered as factors. We can actually use the same call as in the OLS section, but use the intercept argument. Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different?
 
 ```{r}
+datascience(data = iris,
+    family = "gaussian",
+    response = c("Petal.Width"),
+    covariates = c("Species"),
+    intercept = F)
 
+lm(formula = Petal.Width~Species-1,data = iris)%>%summary
 ```
 
 
@@ -148,6 +154,8 @@ This is currently under development. Right now, the package can create a tree, b
 
 Trees are known for being easier to understand than regression, which is steeped in theory. This is true, but regression is fantastically efficient. If you dig into the code for my package, you'll see that OLS can be accomplished in just a handful of steps. Regression trees, on the other hand, are difficult to vectorize since they are sequential. Furthermore, their high performance comes from a highly intensive search for optimal splits across the feature space. Trees test out each branch, covariance, and some subset of the range of each covariate. It's no wonder that individual trees overfit with ease. Such a search naturally translates to quite a bit of looping.
 
+You can see that my code for this is just about a minimum viable process. There is clearly some opportunity for improvement: parallelizing branches, writing some Rcpp, etc. All I can say is hats off to the developers who have made CART implementations like from the ranger package so wickedly fast!
+
 ```{r}
 #We'll start by making a decision tree
 mine<-cart(data = mtcars,
@@ -159,7 +167,6 @@ mine<-cart(data = mtcars,
 #Let's usee the "tree" package to compare
 theirs<-tree(hp~ mpg + disp, 
              data = mtcars,control = tree.control(nrow(mtcars), mincut = 5, minsize = 10))
-
 
 
 #It looks like the function I've supplied does not completely imitate the one from the three package just yet

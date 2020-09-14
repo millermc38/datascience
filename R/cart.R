@@ -3,6 +3,7 @@
 cart<-function(data, response, covariates,family,min_pre_partition_size,min_terminal_node_size,print_progress=F){
 if(family=="tree"){ #test
 
+
   #Keep track of best splits
   best_split_tracker<-data.frame()
   report_key<-"tree"
@@ -35,7 +36,7 @@ if(family=="tree"){ #test
         next
       }
 
-      for(var in final_vars){
+      for(var in covariates){
         for(i in rf_data_filtered_step1$point_id){
 
           split_name<-paste0("r_",split_count)
