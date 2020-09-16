@@ -49,6 +49,33 @@ data(crabs) #From asbio package
 
 Now, let's take a look at some different analysis methods:
 
+### K-Means Clustering
+
+The following function conducts k-means clustering using the algorithm that appears in *An Introduction to Statistical Learning* by Gareth James, Daniela Witten, Trevor Hastie, and Robert Tibshirani. It ignores categorical variables. Since there is random assignment, it is difficult to compare this to other k-means functions, but I will continue to search for one. I did notice that if I turn standardization off that sometimes a cluster is dropped. Even when when the data is not standardized, sometimes the third cluster would just be a single point.
+
+```{r}
+
+#Since the initial cluster assignments are random, we need a seed:
+set.seed(2432134)
+
+#Cluster the iris dataset
+iris_clustered<-kmeanscluster(data = iris,
+                              clusters = 3,
+                              max_iterations = 100,
+                              print_iterations = T,
+                              standardize = T)
+
+# The clusters that the function picked
+ggplot()+
+  geom_point(data = iris_clustered,aes(x=Sepal.Length,y=Sepal.Width,color=cluster))
+
+#The actual species clusters, just for reference
+ggplot()+
+  geom_point(data = iris_clustered,aes(x=Sepal.Length,y=Sepal.Width,color=Species))
+
+```
+
+
 ### Linear Regression (OLS)
 
 Ah, linear regression. Fast, easy, and effective. But rarely high performance for big data. How could I build a package that doesn't have it?
@@ -117,7 +144,6 @@ datascience(data = crabs,
 glm(formula = satell~weight+width,
     family = "poisson",
     data = crabs)%>%summary
-
 ```
 
 ### LOESS Smoother

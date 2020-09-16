@@ -2,3 +2,4 @@
 
 export(cart)
 export(datascience)
+export(kmeanscluster)
