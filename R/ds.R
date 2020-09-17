@@ -129,7 +129,7 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
              theme_light())
 
     report_key<-"LOESS"
-
+    performance<-NULL
   }
 
   ########################################################### RANDOM FOREST MODULE (under development)
@@ -190,6 +190,8 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
       split_count<-split_count+1 #Iterate the split count up by one
 
     }#End boxes
+
+    performance<-NULL
   }#End random forest
 
   ########################################################### KNN MODULE
@@ -227,11 +229,19 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
     report_key<-"knn" #Administrative information for output
     return(data.frame(test_MSE=sqrt(mean((Y-fitted_vals)^2))))
 
+    performance<-NULL
+
   }#End KNN module
 
   ########################################################### GAUSSIAN REGRESSION MODULE (OLS)
 
   if(family=="gaussian"){
+
+    if(intercept==T){
+      intercept_df_cost<-1
+    }else{
+      intercept_df_cost<-0
+    }
 
     #Get the beta estimates
     beta_hats<-(solve((t(X)%*%X)))%*%(t(X)%*%Y)
@@ -240,8 +250,22 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
     preds<-X%*%beta_hats
     residuals<-Y-X%*%beta_hats
 
-    #Get MSE
-    MSE<-sum((residuals^2))/(nrow(X)-length(covariates)-1)
+    #Get regression sum of squares (for F test). We have as many degrees of freedom as parameters we estimate, but subtract one for the estimate of the base (intercept-only model) we are comparing it against.
+    RSS<-sum((X%*%beta_hats-mean(Y))^2)
+
+    #Get SSE. We lose a degree of freedom for each parameter estimated
+    SSE<-sum((residuals^2))
+
+    MSE<-(SSE/(nrow(X)-ncol(X)))
+
+    #Get F_value
+    f<-(RSS/(ncol(X)-1))/(SSE/(nrow(X)-ncol(X)))
+
+    #f pvalue
+    f_val<-pf(q = f,df1 = (ncol(X)-1),df2 = (nrow(X)-ncol(X)),lower.tail = F)
+
+    #Get regular R^2
+    r_2<-RSS/(RSS+SSE)
 
     #Get beta SEs
     beta_ses<-(MSE*solve(t(X) %*% X))%>%as.matrix%>%diag%>%as.numeric%>%sqrt
@@ -250,10 +274,16 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
     beta_ts<-beta_hats/beta_ses
 
     # Do statistical tests
-    p_vals<-2*pt(q = abs(beta_ts),df =(nrow(X)-length(covariates)-1),lower.tail = FALSE)
+    p_vals<-2*pt(q = abs(beta_ts),df =(nrow(X)-ncol(X)),lower.tail = FALSE)
     dist_of_test_stat<-"t"
 
     report_key<-"gaussian" #Administrative information for output
+
+    performance<-data.frame(`F Statistic`=f,
+               `F P-Value`=f_val,
+               r_2=r_2,
+               MSE=MSE)%>%round(rounding)
+
   }
   ########################################################### GLM REGRESSION (MLE)
 
@@ -320,6 +350,8 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
 
     report_key<-"glm" #Administrative information for output
 
+    performance<-NULL
+
   }#End of non-gaussian family cases
 
   ########################################################### MODEL RESULTS OUTPUT MODULE
@@ -341,22 +373,45 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
         names=c("Intercept",final_vars)
       }else{names=c(final_vars)}
       #Main regression output:
-      data.frame(parameter=names,
-                 beta_hats%>%as.numeric%>%round(5),
-                 beta_ses%>%as.numeric%>%round(5),
-                 beta_ts%>%as.numeric%>%round(5),
-                 p_vals%>%as.numeric)%>%
-        set_names("parameter","Estimate","Std. Error",dist_of_test_stat,paste0("Pr(>|",dist_of_test_stat,"|)"))%>%print
+
+      results<-list(parameter_estimates=data.frame(Parameter=names,
+                                          beta_hats%>%as.numeric%>%round(rounding),
+                                          beta_ses%>%as.numeric%>%round(rounding),
+                                          beta_ts%>%as.numeric%>%round(rounding),
+                                          p_vals%>%as.numeric)%>%
+             set_names("Parameter","Estimate","Std. Error",paste0(dist_of_test_stat," value"),paste0("Pr(>|",dist_of_test_stat,"|)")),
+           performance=performance)
+      cat("==========================================================")
+      cat("\n")
+      cat("Parameter Estimates")
+      cat("\n")
+      cat("==========================================================")
+      cat("\n")
+      print(results$parameter_estimates,row.names=F)
+      cat("\n")
+
+      #If we had dummy variables, show the reference levels
+      if(class(dummyize(data))=="list"&intercept==T){
+        cat("==========================================================")
+        cat("\n")
+        cat("Categorical Variable Reference Levels")
+        cat("\n")
+        cat("==========================================================")
+        cat("\n")
+        print(reference_vars,row.names=F)
+        cat("\n")
+      }
+      cat("==========================================================")
+      cat("\n")
+      cat("Performance")
+      cat("\n")
+      cat("==========================================================")
+      cat("\n")
+      print(results$performance,row.names=F)
 
       #Information about iterations
       if(family!="gaussian"){
         print(paste("Newton-Raphson iterations: ",iteration_counter-1,"(",max_iterations," allowed)" ))}
-
-      #If we had dummy variables, show the reference levels
-      if(class(dummyize(data))=="list"&intercept==T){
-        print("Reference Levels:")
-          print(reference_vars)
-        }
 
     }
   }#End of regression reporting module

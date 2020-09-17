@@ -58,7 +58,7 @@ The following function conducts k-means clustering using the algorithm that appe
 #Since the initial cluster assignments are random, we need a seed:
 set.seed(2432134)
 
-#Cluster the iris dataset
+#Cluster the iris dataset with the datascience package
 iris_clustered<-kmeanscluster(data = iris,
                               clusters = 3,
                               max_iterations = 100,
@@ -87,7 +87,9 @@ I compare my package with `lm`. Here, there are small differences in the standar
 datascience(data = iris,
     family = "gaussian",
     response = c("Petal.Width"),
-    covariates = c("Sepal.Length","Species"))
+    covariates = c("Sepal.Length","Species"),
+    intercept = T,
+    rounding = 5)
 
 #stats package output
 lm(formula = Petal.Width~Sepal.Length+Species,
@@ -104,11 +106,46 @@ datascience(data = iris,
     family = "gaussian",
     response = c("Petal.Width"),
     covariates = c("Species"),
-    intercept = F)
+    intercept = F,
+    rounding = 5)
 
 #stats package output
 lm(formula = Petal.Width~Species-1,data = iris)%>%summary
 ```
+
+### Power Tests for One-Way ANOVA
+
+In ANOVA, we essentially look at how much variance from treatments we have vs. how much variance we have from all of the factor level means. In other words, we have $\frac{MSE_{treatments}}{MSE}$. Naturally, $MSE$~$\chi^2$ distributed (or as my students liked to call is, "Chee-squared"). But when we take the ratio of them, we get an $F$ distribution (proof omitted here). However, this F-distribution has a different appearance depending on whether the null or alternative is true. If the null is true--that is, none of the group means differ--then the ratio follows a central F_(a-1,n-a) distribution. The degrees of freedom are easy to rememeber: the first, $a-1$ refers to the fact that for each treatment estimation (there are $a$ treatments), we lose a degree of freedom. Likewise, in the denominator represents the within group MSE, which we know from the basic assumptions of regression (of which ANOVA is a special case) that errors are normally distributed with a common variance (in regression, we say that the distribution is normal regardless of X). We have $a$ means estimated, so $a$ degrees of freedom lost in that estimate.
+
+
+
+
+```{r}
+set.seed(1)
+n<-50
+fake_ANOVA_data<-data.frame(group1=rnorm(n = n, mean = 0, sd = 1),
+                            group2=rnorm(n = n, mean = 1, sd = 1),
+                            group3=rnorm(n = n, mean = 2, sd = 1))%>%
+  pivot_longer(names_to = "group",values_to = "value",cols = c("group1","group2","group3"))%>%
+  data.frame%>%group_by(group)%>%summarize(mean=mean(value))
+
+datascience(data = fake_ANOVA_data,response = c("value"),
+            covariates = c("group"),
+            family = "gaussian",
+            intercept = F)
+
+datascience(data = iris,
+    family = "gaussian",
+    response = c("Petal.Width"),
+    covariates = c("Species"),
+    intercept = F)
+
+null_F<-rf
+
+
+#Get mses, means are same
+```
+
 
 
 ### Logistic Regression
@@ -120,7 +157,8 @@ This one is a perfect match in terms of results!
 datascience(data = mtcars,
             family = "binomial",
             response = c("vs"),
-            covariates = c("disp","mpg"))
+            covariates = c("disp","mpg"),
+            rounding = 5)
 
 #stats package output
 glm(formula = vs~disp+mpg,
@@ -138,7 +176,8 @@ In the models that follow, my function output matches `glm`'s (you can see the d
 datascience(data = crabs,
             family = "poisson",
             response = c("satell"),
-            covariates = c("weight","width"))
+            covariates = c("weight","width"),
+            rounding = 5)
 
 #stats package output
 glm(formula = satell~weight+width,
