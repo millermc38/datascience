@@ -1,5 +1,5 @@
 ---
-title: "Data Science Package: An Introduction"
+title: "The datascience Package: An Introduction"
 author: "Mark Miller"
 date: "`r Sys.Date()`"
 output:
@@ -28,9 +28,9 @@ Please note that this package is still in its development stage; it will likely 
 
 Welcome to the *datascience* package! The groundwork for this project was hatched in 2018 as I contemplated ways to engage with my passion for data science and statistics in a robust manner after graduating from my master's degree. By building this package, I have the opportunity to explore what are perhaps the three key ideas behind statistical and machine learning modeling: theory, coding, and optimization. In July of 2020, I started writing the first functions. The goal of this project is to wrap as many different statistical and machine learning methods together as possible without relying on **any** external resources for calculation. In other words, all of the modeling procedures in this package are built on the fundamental operators in statistics: matrix multiplication, division, addition, integration, etc.
 
-But it is a bit more than this. Often times, these sorts of thoughts have crossed my mind: "What would it be like to do a random forest that split using some other method than binary recursive splitting?" or "what if we used a kernel in KNN?" By building my own package, I have the latitude to tamper with model procedures and sculpt model output the way I want it. Additionally, I've always felt diagnostics and assumption checking tend recede into the background in the eagerness for analysis. In the long term, I would love to include list objects that house a variety of diagnostic results for any model output.
+But it is a bit more than this. Often times, these sorts of thoughts have crossed my mind: "What would it be like to do a random forest that split using some other method than binary recursive splitting?" or "what if we used a kernel in KNN?" By building my own package, I have the latitude to tamper with model procedures and sculpt model output the way I want it. Additionally, I've always felt diagnostics and assumption checking tend to recede into the background in the eagerness for analysis. In the long term, I would love to include list objects that house a variety of diagnostic results for any model output.
 
-This project is in its nascency. The model outputs are not well formatted, the code is not vectorized or optimized, factors have shaky handling, and the package requires Tidyverse. This last item is a bit of a no-no is the package building world, and pipes tend to be slow in evaluating. I've yet to decide if I prefer readability (since this is a package primarily targeted at deliberate practice) or optimization. I suspect the allure of the latter will eventually win out. At any rate, I hope you enjoy this production! It is certainly a delight to make.
+This project is in its nascency. The model outputs are aesthetically basic (but improving), the code is not vectorized or optimized in several cases, and factors have shaky handling. I've yet to decide if I prefer readability (since this is a package primarily targeted at deliberate practice) or optimization. I suspect the allure of the latter will eventually win out. At any rate, I hope you enjoy this production! It is certainly a delight to make.
 
 ```{r setup}
 #Install the package from github, and load it into the environment
@@ -40,7 +40,7 @@ library(datascience)
 #Import a few other packages just so we can compare output
 library(caret)
 library(asbio)
-library(RCurl,quietly = T)
+library(RCurl,quietly = T,verbose = F,warn.conflicts = F)
 library(tree,quietly = T) #To compare decision trees with my package
 LOESS_data<- read.csv(
   text = getURL("https://raw.githubusercontent.com/millermc38/datascience/master/Data/LOESS.csv"))
@@ -49,9 +49,11 @@ data(crabs) #From asbio package
 
 Now, let's take a look at some different analysis methods:
 
-### K-Means Clustering
+### K-means Clustering
 
-The following function conducts k-means clustering using the algorithm that appears in *An Introduction to Statistical Learning* by Gareth James, Daniela Witten, Trevor Hastie, and Robert Tibshirani. It ignores categorical variables. Since there is random assignment, it is difficult to compare this to other k-means functions, but I will continue to search for one. I did notice that if I turn standardization off that sometimes a cluster is dropped. Even when when the data is not standardized, sometimes the third cluster would just be a single point.
+The following function conducts k-means clustering using the algorithm that appears in *An Introduction to Statistical Learning* by Gareth James, Daniela Witten, Trevor Hastie, and Robert Tibshirani. It ignores categorical variables. Since there is random assignment at the initiation of the algorithm, it is difficult to compare this to other k-means functions written by other R package authors, but I will continue to search for one. I did notice that if I turn standardization off that sometimes a cluster is dropped. Even when the data is not standardized, it may do this, though I have not observed this case.
+
+Note that I compare the clustering process from this package to the actual species clusters. This is only a whimsical comparison, because we should remind ourselves that k-means is unsupervised. The algorithm has no idea what a species is or that it should look for them. Rather, it simply finds similar groups of data. Given the structure of the iris data set, we might guess that it would stumble upon the species, but it is no guarantee.
 
 ```{r}
 
@@ -78,9 +80,9 @@ ggplot()+
 
 ### Linear Regression (OLS)
 
-Ah, linear regression. Fast, easy, and effective. But rarely high performance for big data. How could I build a package that doesn't have it?
+Linear regression: swift, easy, and effective. But rarely high performance for big data. One cannot build a package called "datascience" without including it.
 
-I compare my package with `lm`. Here, there are small differences in the standard errors between these two packages, but not the $\beta$ estimates. Granted they are minute differences, but it is is still interesting to note. I will explore this further.
+I compare my package with `lm`. You may see small differences between the numbers, but if you look closely, you can see this is merely due to rounding. In this package, I've made two small tweaks I've long wished `lm` would have: a section describing the categorical levels collapsed into the intercept (in this case, there is only one categorical variable) and user-specified rounding for all estimates (except p-values, which I think are better left in full).
 
 ```{r}
 #datascience package output
@@ -96,9 +98,9 @@ lm(formula = Petal.Width~Sepal.Length+Species,
    data = iris)%>%summary
 ```
 
-### ANOVA
+### One-way ANOVA
 
-If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein the intercept is dropped and all variables are considered as factors. We can use the same call as in the OLS section, but use the intercept argument (to turn it off). Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different?
+If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein the intercept is dropped and all variables are considered as factors. We can use the same call as in the OLS section, but use the intercept argument (to turn it off). Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model fit process, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different? I endeavor to include these contrast in future updates.
 
 ```{r}
 #datascience package output
@@ -113,44 +115,9 @@ datascience(data = iris,
 lm(formula = Petal.Width~Species-1,data = iris)%>%summary
 ```
 
-### Power Tests for One-Way ANOVA
-
-In ANOVA, we essentially look at how much variance from treatments we have vs. how much variance we have from all of the factor level means. In other words, we have $\frac{MSE_{treatments}}{MSE}$. Naturally, $MSE$~$\chi^2$ distributed (or as my students liked to call is, "Chee-squared"). But when we take the ratio of them, we get an $F$ distribution (proof omitted here). However, this F-distribution has a different appearance depending on whether the null or alternative is true. If the null is true--that is, none of the group means differ--then the ratio follows a central F_(a-1,n-a) distribution. The degrees of freedom are easy to rememeber: the first, $a-1$ refers to the fact that for each treatment estimation (there are $a$ treatments), we lose a degree of freedom. Likewise, in the denominator represents the within group MSE, which we know from the basic assumptions of regression (of which ANOVA is a special case) that errors are normally distributed with a common variance (in regression, we say that the distribution is normal regardless of X). We have $a$ means estimated, so $a$ degrees of freedom lost in that estimate.
-
-
-
-
-```{r}
-set.seed(1)
-n<-50
-fake_ANOVA_data<-data.frame(group1=rnorm(n = n, mean = 0, sd = 1),
-                            group2=rnorm(n = n, mean = 1, sd = 1),
-                            group3=rnorm(n = n, mean = 2, sd = 1))%>%
-  pivot_longer(names_to = "group",values_to = "value",cols = c("group1","group2","group3"))%>%
-  data.frame%>%group_by(group)%>%summarize(mean=mean(value))
-
-datascience(data = fake_ANOVA_data,response = c("value"),
-            covariates = c("group"),
-            family = "gaussian",
-            intercept = F)
-
-datascience(data = iris,
-    family = "gaussian",
-    response = c("Petal.Width"),
-    covariates = c("Species"),
-    intercept = F)
-
-null_F<-rf
-
-
-#Get mses, means are same
-```
-
-
-
 ### Logistic Regression
 
-This one is a perfect match in terms of results!
+No commentary here, the datascience package matches R's `glm` perfectly.
 
 ```{r}
 #datascience package output
@@ -165,7 +132,6 @@ glm(formula = vs~disp+mpg,
     family = "binomial",
     data = mtcars)%>%summary
 ```
-
 
 ### Poisson Regression
 
@@ -199,7 +165,7 @@ datascience(data = LOESS_data,
 
 ### KNN
 
-For KNN, the results below are identical until the 100,000ths place. Good enough for me! Note that the parameter argument here is the number of neighbors.
+For KNN, the results below are identical until the 100,000ths place. I am very curious as to what could create such a minute difference on such a small dataset. It is possible that caret is doing some rounding that I am not under the hood.
 
 ```{r}
 #datascience package output
@@ -216,20 +182,25 @@ theirs<-train(drat~disp+mpg,data = mtcars,method = "knn",
               tuneGrid=data.frame(k=3))
 
 #Compare test MSE from these models
-data.frame(datascience_testMSE=mine$test_MSE,
-           caret_testMSE=sqrt(mean((mtcars$drat-predict(object = theirs,newdata = mtcars))^2)))
+comparison<-data.frame(datascience_testMSE=mine$test_MSE,
+           caret_testMSE=sqrt(mean((mtcars$drat-predict(object = theirs,newdata = mtcars))^2)))%>%
+  set_names(c("datascience","Caret"))%>%round(5)
+
+row.names(comparison)<-"Test MSE"
+
+comparison
 ```
 
-### CART (bagging, random forest, boosting all under development)
+### CART (bagging, random forest, and boosting are all under development)
 
-This is currently under development. Right now, the package can create a tree, but it seems to be splitting differently across the feature space than other common packages. 
+This section is currently under development. Right now, my package can create a tree, but it seems to be splitting differently across the feature space than other common packages. 
 
-Trees are known for being easier to understand than regression, which is steeped in theory. This is true, but regression is fantastically efficient. If you dig into the code for my package, you'll see that OLS can be accomplished in just a handful of steps. Regression trees, on the other hand, are difficult to vectorize since they are sequential. Furthermore, their high performance comes from an intensive search for optimal splits across the feature space. Trees test out each branch, covariate, and some subset of the range of each covariate. It's no wonder that individual trees overfit with ease. ANd such a search naturally translates to quite a bit of looping (which I am trying to cut down on).
+Trees are known for being easier to understand than regression, which is steeped in theory. This is true, but regression is fantastically efficient. If you dig into the code for my package, you'll see that OLS can be accomplished in just a handful of steps. Regression trees, on the other hand, are difficult to vectorize since they are sequential. Furthermore, their high performance comes from an intensive search for optimal splits across the feature space. Trees test out each branch, covariate, and some subset of the range of each covariate. It's no wonder that individual trees overfit with ease. And such a search naturally translates to quite a bit of looping (which I am trying to cut down on).
 
-You can see that my code for this is just about a minimum viable process. There is clearly some opportunity for improvement: parallelizing branches, writing some Rcpp, removing pipes, not copying dataframes, etc. All I can say is hats off to the developers who have made CART implementations so wickedly fast, like from the `ranger` package!
+I've accomplished the below with just about a minimum viable process. There is clearly some opportunity for improvement: parallelizing branches, writing some Rcpp, removing pipes, not copying data frames, etc. All I can say is hats off to the developers who have made CART implementations so wickedly fast, like from the `ranger` package!
 
 ```{r}
-#We'll start by making a decision tree
+#create a decision tree with the datascience package
 mine<-cart(data = mtcars,
     family = "tree",
     response = c("hp"),
