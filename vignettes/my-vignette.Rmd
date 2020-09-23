@@ -121,6 +121,17 @@ lm(formula = Petal.Width~Species,data = iris,x = T)%>%summary
 
 ```
 
+### Power Tests
+
+```{r}
+power_test(n_i_per_group = 5,
+           n_treatmeants = 4,
+           alpha = .05,
+           at_least_on_trt_differs_by = .4,
+           MSE = .035)
+```
+
+
 ### Logistic Regression
 
 No commentary here, the datascience package matches R's `glm` perfectly.

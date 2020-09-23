@@ -1,9 +1,9 @@
 #' @export power_test
-power_test<-function(n_i_per_group,n_treatmeants,alpha,at_least_on_trt_differs_by,MSE){
+power_test<-function(n_i_per_group,n_treatmeants,alpha,at_least_one_trt_differs_by,MSE){
 
 
   #See experimental design notes on power. Under null, variance is sigma^2. Under alternative, sigma^2 plus gamma as below (since there is extra variability form aberrant means.)
-  gamma<-(n_i_per_group*(at_least_on_trt_differs_by)^2)/(2*MSE)
+  gamma<-(n_i_per_group*(at_least_one_trt_differs_by)^2)/(2*MSE)
 
   #Null F Cutoff point to detect this.
   null_cutoff<-qf(p = 1-alpha,
