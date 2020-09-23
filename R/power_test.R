@@ -1,5 +1,5 @@
 #' @export power_test
-power_test<-function(n_i_per_group,n_treatmeants,alpha,at_least_one_trt_differs_by,MSE){
+power_test<-function(n_i_per_group,n_treatmeants,alpha,at_least_one_trt_differs_by,MSE,intercept){
 
 
   #See experimental design notes on power. Under null, variance is sigma^2. Under alternative, sigma^2 plus gamma as below (since there is extra variability form aberrant means.)

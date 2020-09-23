@@ -123,11 +123,13 @@ lm(formula = Petal.Width~Species,data = iris,x = T)%>%summary
 
 ### Power Tests
 
+Power tests are key to conserving resources and preparing for a successful study. This power test is mean for One-Way ANOVA. It currently only supports balanced designs. More explanation on this one coming soon!
+
 ```{r}
 power_test(n_i_per_group = 5,
            n_treatmeants = 4,
            alpha = .05,
-           at_least_on_trt_differs_by = .4,
+           at_least_one_trt_differs_by = .4,
            MSE = .035)
 ```
 
