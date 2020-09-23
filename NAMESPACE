@@ -3,3 +3,4 @@
 export(cart)
 export(datascience)
 export(kmeanscluster)
+export(power_test)

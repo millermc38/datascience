@@ -251,21 +251,39 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
     residuals<-Y-X%*%beta_hats
 
     #Get regression sum of squares (for F test). We have as many degrees of freedom as parameters we estimate, but subtract one for the estimate of the base (intercept-only model) we are comparing it against.
-    RSS<-sum((X%*%beta_hats-mean(Y))^2)
+    if(intercept==T){
+      RSS<-sum((preds-mean(Y))^2)
+    }else{
+      RSS<-sum((preds)^2)
+    }
+
+
 
     #Get SSE. We lose a degree of freedom for each parameter estimated
     SSE<-sum((residuals^2))
 
+
     MSE<-(SSE/(nrow(X)-ncol(X)))
 
     #Get F_value
-    f<-(RSS/(ncol(X)-1))/(SSE/(nrow(X)-ncol(X)))
+    f<-(RSS/(ncol(X)-intercept_df_cost))/(SSE/(nrow(X)-ncol(X)))
 
     #f pvalue
     f_val<-pf(q = f,df1 = (ncol(X)-1),df2 = (nrow(X)-ncol(X)),lower.tail = F)
 
     #Get regular R^2
-    r_2<-RSS/(RSS+SSE)
+    #r_2<-RSS/(RSS+SSE) If you think R^2 is calculated this way, you should go visit:
+    #https://stats.stackexchange.com/questions/26176/removal-of-statistically-significant-intercept-term-increases-r2-in-linear-mo
+
+    #In fact, R^2 is actually more generally expressed as the following, which is entirely dependent on whether or not an intercept has been specified!:
+
+    if(intercept==T){
+      r_2<-(1-SSE/sum((Y-mean(Y))^2))
+    }else{
+      r_2<-(1-SSE/sum((Y)^2))
+    }
+
+
 
     #Get beta SEs
     beta_ses<-(MSE*solve(t(X) %*% X))%>%as.matrix%>%diag%>%as.numeric%>%sqrt
@@ -380,7 +398,9 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
                                           beta_ts%>%as.numeric%>%round(rounding),
                                           p_vals%>%as.numeric)%>%
              set_names("Parameter","Estimate","Std. Error",paste0(dist_of_test_stat," value"),paste0("Pr(>|",dist_of_test_stat,"|)")),
-           performance=performance)
+           performance=performance,
+           design_matrix=X,
+           response=Y)
       cat("==========================================================")
       cat("\n")
       cat("Parameter Estimates")

@@ -102,19 +102,23 @@ lm(formula = Petal.Width~Sepal.Length+Species,
 
 ### One-way ANOVA
 
-If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein the intercept is dropped and all variables are considered as factors. We can use the same call as in the OLS section above, but amend the intercept argument (by turning it off). Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model fit process, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different? I endeavor to include these contrast in future updates.
+If you've learned ANOVA and regression in a field outside of statistics, you might not be fully aware that ANOVA is actually just a special case of regression wherein all variables are considered as factors. We can use the same call as in the OLS section above. Note that the statistical tests are not all that meaningful here (edits currently underway). In fact, what really distinguished ANOVA from regression is not the model fit process, but generally the analysis that follow. For example, we typically want to look at contrasts. Which groups are different? I endeavor to include these contrast in future updates.
+
+In coding up this function, I ran into one tiny problem. I added an argument to allow users to drop the intercept if those so desired. However, I realized that my $F$ statistic and $R^2$ value no longer matched R's `lm` and `aov`. At first taken aback that I could have a hiccup in such a fundamental statistical tool, I found that I had fallen prey to something of a myth propagated in the popular literature: $R^{2}=\frac{\sum_{i}\left(\hat{y}_{i}-\bar{y}\right)^{2}}{\sum_{i}\left(y_{i}-\bar{y}\right)^{2}}=1-\frac{\sum_{i}\left(y_{i}-\hat{y}_{i}\right)^{2}}{\sum_{i}\left(y_{i}-\bar{y}\right)^{2}}$ is not true! The first middle item is only true when we include the intercept. Furthermore, if we drop the intercept, our regression sum of squares (RSS) gains back the 1 degree of freedom that is usually subtracted out for the intercept. This changes the $F$ statistic, naturally. While I had originally included the option to remove the intercept because this directly gives the user the mean estimates for the levels of the factor we are interested in, it turns out that this changes the analysis itself. I will eventually include an appendix on what *exactly* the degrees of freedom mean in the context of ANOVA and regression (rather than the formula for them, which is nto the same thing!).
 
 ```{r}
+
 #datascience package output
 datascience(data = iris,
     family = "gaussian",
     response = c("Petal.Width"),
     covariates = c("Species"),
-    intercept = F,
+    intercept = T,
     rounding = 5)
 
-#stats package output
-lm(formula = Petal.Width~Species-1,data = iris)%>%summary
+#stats package output.
+lm(formula = Petal.Width~Species,data = iris,x = T)%>%summary
+
 ```
 
 ### Logistic Regression
