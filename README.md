@@ -1,3 +1,2 @@
 # datascience
-A versatile data science and statistics package
-Testing!
+A versatile data science and statistics package!
