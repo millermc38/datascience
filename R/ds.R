@@ -1,5 +1,5 @@
 #' @export datascience
-datascience<-function(data, response, covariates,rounding,family,parameter,intercept=T){
+datascience<-function(data, response, covariates,rounding,family,parameter,intercept=T,print_summary=T){
 
   ########################################################### DATA PREPARATION
   #In this section, we write a function that can detect character and factor variables, and turn them into dummy variables
@@ -401,6 +401,8 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
            performance=performance,
            design_matrix=X,
            response=Y)
+
+      if(print_summary==T){
       cat("==========================================================")
       cat("\n")
       cat("Parameter Estimates")
@@ -433,6 +435,9 @@ datascience<-function(data, response, covariates,rounding,family,parameter,inter
       if(family!="gaussian"){
         print(paste("Newton-Raphson iterations: ",iteration_counter-1,"(",max_iterations," allowed)" ))}
 
-    }
+      }
+
+    }#End: if print_summary==t
+    return(results)
   }#End of regression reporting module
 } #End of datascience function
